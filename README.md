@@ -85,8 +85,8 @@ used.
 
 General attributes:
 
-- `node['splunk']['accept_license']`: Whether to accept the Splunk
-  EULA. Default is false. This *-*must*-* be set to boolean true for Splunk to be
+* `node['splunk']['accept_license']`: Whether to accept the Splunk
+  EULA. Default is false. This *must* be set to boolean true for Splunk to be
   functional with this cookbook, which means end users must read the
   EULA and agree to the terms.
 - `node['splunk']['is_server']`: Set this to true if the node is a
@@ -108,23 +108,23 @@ General attributes:
 The two URL attributes below are selected by platform and architecture
 by default.
 
-- `node['splunk']['forwarder']['url']`: The URL to the Splunk Universal Forwarder package file.
-- `node['splunk']['server']['url']`: The URL to the Splunk Enterprise package file.
-- `node['splunk']['forwarder']['version']`: specifies the splunk universal forwarder version to install. This is ignored if forwarder URL is provided. (Default: 8.0.1)
-- `node['splunk']['server']['version']`: specifies the splunk server version to install. This is ignored if server URL is provided. (Default: 8.0.1)
-- Set these attributes to `nil` or empty string `''` to force installing the packages from the
+* `node['splunk']['forwarder']['url']`: The URL to the Splunk Universal Forwarder package file.
+* `node['splunk']['server']['url']`: The URL to the Splunk Enterprise package file.
+* `node['splunk']['forwarder']['version']`: specifies the splunk universal forwarder version to install. This is ignored if forwarder URL is provided. (Default: 6.6.0)
+* `node['splunk']['server']['version']`: specifies the splunk server version to install. This is ignored if server URL is provided. (Default: 6.6.0)
+* Set these attributes to `nil` or empty string `''` to force installing the packages from the
   OS package managers. In doing so, server owners are responsible for properly configuring their
   package manager so chef can install the package.
 
   For example, each line below will force the chef-client to install Splunk's Universal Forwarder
   and server from the local package manager:
-
   ```
   node.force_default['splunk']['forwarder']['url'] = ''
   node.force_default['splunk']['server']['url'] = ''
   node.force_default['splunk']['forwarder']['url'] = nil
   node.force_default['splunk']['server']['url'] = nil
   ```
+
 
 Special attributes for managing the Splunk user:
 
@@ -316,21 +316,20 @@ may be relevant. Enabling the upgrade and blindly using the default
 URLs may have undesirable consequences, hence this is not enabled, and
 must be set explicitly elsewhere on the node(s).
 
-- `node['splunk']['upgrade_enabled']`: Controls whether the upgrade is enabled and the `attributes/upgrade.rb` file should be loaded. Set this in a role or wrapper cookbook to perform an upgrade.
+* `node['splunk']['upgrade_enabled']`: Controls whether the upgrade is enabled and the `attributes/upgrade.rb` file should be loaded. Set this in a role or wrapper cookbook to perform an upgrade.
 
-- `node['splunk']['server']['upgrade']['url']`: This is the URL to the desired server upgrade package only if `upgrade_enabled` is set.
-- `node['splunk']['server']['upgrade']['version']`: specifies the target splunk server version for an upgrade. This is ignored if server upgrade URL is provided. (Default: 8.0.1)
-- `node['splunk']['forwarder']['upgrade']['url']`: This is the URL to the desired forwarder upgrade package only if `upgrade_enabled` is set.
-- `node['splunk']['forwarder']['upgrade']['version']`: specifies the target splunk universal forwarder version for an upgrade. This is ignored if forwarder upgrade URL is provided. (Default: 8.0.1)
+* `node['splunk']['server']['upgrade']['url']`: This is the URL to the desired server upgrade package only if `upgrade_enabled` is set.
+* `node['splunk']['server']['upgrade']['version']`: specifies the target splunk server version for an upgrade. This is ignored if server upgrade URL is provided. (Default: 7.3.2)
+* `node['splunk']['forwarder']['upgrade']['url']`: This is the URL to the desired forwarder upgrade package only if `upgrade_enabled` is set.
+* `node['splunk']['forwarder']['upgrade']['version']`: specifies the target splunk universal forwarder version for an upgrade. This is ignored if forwarder upgrade URL is provided. (Default: 7.3.2)
 
-- All URLs set in attributes must be direct download links and not redirects
-- Set these attributes to `nil` or empty string `''` to force installing the packages from the
+* All URLs set in attributes must be direct download links and not redirects
+* Set these attributes to `nil` or empty string `''` to force installing the packages from the
   OS package managers. In doing so, server owners are responsible for properly configuring their
   package manager so chef can install the package.
 
   For example, each line below will force the chef-client to install Splunk's Universal Forwarder and server
   from the local package manager:
-
   ```
   node.force_default['splunk']['forwarder']['upgrade']['url'] = ''
   node.force_default['splunk']['server']['upgrade']['url'] = ''
@@ -338,31 +337,6 @@ must be set explicitly elsewhere on the node(s).
   node.force_default['splunk']['server']['upgrade']['url'] = nil
   ```
 
-## Helper methods
-
-### splunk_cmd
-
-When wrapping this cookbook, it is often beneficial to run Splunk Enterprise or Universal Forwarder as a non-root user. This is, in fact, a security recommendation to run Splunk as a non-root user. To this end, `#splunk_cmd` will return the properly constructed command to run a Splunk CLI command with arguments.
-
-Example:
-
-```
-execute 'set servername' do
-  command splunk_cmd(['set', 'servername', node.name, '-auth', node.run_state['splunk_auth_info'])
-  sensitive true
-  notifies :restart, 'service[splunk]'
-end
-```
-
-another way that will result in the same command:
-
-```
-execute 'set servername' do
-  command splunk_cmd("set servname #{node.name} -auth '#{node.run_state['splunk_auth_info']}'")
-  sensitive true
-  notifies :restart, 'service[splunk]'
-end
-```
 
 ## Custom Resources
 
@@ -531,18 +505,17 @@ Package files will be downloaded to Chef's file cache path (e.g.,
 default).
 
 #### Actions
-
-- `:run`: install the splunk server or splunk universal forwarder
-- `:remove`: uninstall the splunk server or splunk universal forwarder
-- `:upgrade`: upgrade an existing splunk or splunk universal forwarder package
+* `:run`: install the splunk server or splunk universal forwarder
+* `:remove`: uninstall the splunk server or splunk universal forwarder
+* `:upgrade`: upgrade an existing splunk or splunk universal forwarder package
 
 The custom resource has two parameters.
 
-- `name`: The name of the package (e.g., `splunk`, `splunkforwarder`).
-- `url`: The URL to the package file.
-- `package_name`: This is the name of the package to install, if it is different from
+* `name`: The name of the package (e.g., `splunk`, `splunkforwarder`).
+* `url`: The URL to the package file.
+* `package_name`: This is the name of the package to install, if it is different from
   the resource name.
-- `version`: install/upgrade to this version, if `url` is not given
+* `version`: install/upgrade to this version, if `url` is not given
 
 #### Examples
 

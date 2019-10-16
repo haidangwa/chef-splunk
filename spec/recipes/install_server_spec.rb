@@ -44,6 +44,15 @@ describe 'chef-splunk::install_server' do
           expect(chef_run).to run_splunk_installer('splunk').with(url: '', version: '8.0.1')
         end
       end
+
+      context 'install from package manager' do
+        it 'should install splunk forwarder from local repo' do
+          chef_run.node.force_default['splunk']['server']['url'] = ''
+          chef_run.node.force_default['splunk']['server']['version'] = '6.6.0'
+          chef_run.converge(described_recipe)
+          expect(chef_run).to run_splunk_installer('splunk').with(version: '6.6.0')
+        end
+      end
     end
   end
 end
