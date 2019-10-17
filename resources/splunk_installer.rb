@@ -56,7 +56,7 @@ action_class do
     # for us uniformly regardless of the action
     edit_resource(:service, 'splunk') do
       action installer_action == :upgrade ? :stop : :nothing
-      supports status: true, restart: true
+      supports restart: true
       stop_command svc_command('stop')
       start_command svc_command('start')
       restart_command svc_command('restart')
@@ -65,7 +65,13 @@ action_class do
 
     remote_file package_file do
       backup false
-      mode '644'
+      if platform_family?('windows')
+        rights :read, 'Everyone', applies_to_children: true
+        rights :full_control, 'Administrators'
+        inherits true
+      else
+        mode '644'
+      end
       path cached_package
       source new_resource.url
       use_conditional_get true
@@ -74,6 +80,9 @@ action_class do
       not_if { new_resource.url.nil? || new_resource.url.empty? }
     end
 
+    # adds the appropriate package resource to the resource collection
+    # taking into account Windows-specific options and whether the package
+    # should be installed using the given URL resource or OS package manager.
     declare_resource local_package_resource, new_resource.name do
       action installer_action
       package_name new_resource.package_name
