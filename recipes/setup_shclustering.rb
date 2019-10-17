@@ -17,6 +17,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+if platform_family?('windows')
+  log 'Splunk Server installation on Windows is not supported' do
+    level :warn
+  end
+  return
+end
+
 unless node['splunk']['shclustering']['enabled']
   Chef::Log.debug('The chef-splunk::setup_shclustering recipe was added to the node,')
   Chef::Log.debug('but the attribute to enable search head clustering was not set.')

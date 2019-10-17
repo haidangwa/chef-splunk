@@ -30,4 +30,5 @@ splunk_installer "#{splunk_package} upgrade" do
   action :upgrade
   url node['splunk'][url_type]['upgrade']['url']
   version node['splunk'][url_type]['upgrade']['version']
+  not_if { node['splunk']['is_server'] == true && platform_family?('windows') }
 end

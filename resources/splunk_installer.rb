@@ -18,6 +18,8 @@ resource_name :splunk_installer
 property :url, String
 property :package_name, String, name_property: true
 property :version, String
+property :splunkuser, String, default: splunk_runas_user
+property :splunkpassword, String
 
 action_class do
   def package_file
@@ -40,90 +42,81 @@ action_class do
     case node['platform_family']
     when 'rhel', 'fedora', 'suse', 'amazon'
       :rpm_package
+    when 'windows'
+      :windows_package
     when 'debian'
       :dpkg_package
+    end
+  end
+
+  def action_installer(installer_action = :install)
+    # during an initial install, the start/restart commands must deal with accepting
+    # the license. So, we must ensure the service[splunk] resource
+    # properly deals with the license; therefore, the `svc_command` method does this
+    # for us uniformly regardless of the action
+    edit_resource(:service, 'splunk') do
+      action installer_action == :upgrade ? :stop : :nothing
+      supports status: true, restart: true
+      stop_command svc_command('stop')
+      start_command svc_command('start')
+      restart_command svc_command('restart')
+      provider splunk_service_provider
+    end
+
+    remote_file package_file do
+      backup false
+      mode '644'
+      path cached_package
+      source new_resource.url
+      use_conditional_get true
+      use_etag true
+      action :create
+      not_if { new_resource.url.empty? || new_resource.url.nil? }
+    end
+
+    declare_resource local_package_resource, new_resource.name do
+      action installer_action
+      package_name new_resource.package_name
+
+      if new_resource.url.empty? || new_resource.url.nil?
+        version package_version
+      else
+        source cached_package.gsub(/\.Z/, '')
+      end
+
+      if platform_family?('windows')
+        installer_type :msi
+        sensitive true
+        options "AGREETOLICENSE=#{license_accepted? ? 'YES' : 'NO'} SPLUNKUSER=#{new_resource.splunkuser} SPLUNKPASSWORD=#{new_resource.splunkpassword} /quiet"
+      end
+
+      notifies :stop, 'service[splunk]', :before if installer_action == :upgrade
+      
+      # forwarders can be restarted immediately; otherwise, wait until the end
+      if package_file =~ /splunkforwarder/
+        notifies :start, 'service[splunk]', :immediately
+      else
+        notifies :start, 'service[splunk]'
+      end
     end
   end
 end
 
 action :run do
-  return if splunk_installed?
+  action_installer
+end
 
-  # during an initial install, the start/restart commands must deal with accepting
-  # the license. So, we must ensure the service[splunk] resource
-  # properly deals with the license.
-  edit_resource(:service, 'splunk') do
-    action :nothing
-    supports status: true, restart: true
-    stop_command svc_command('stop')
-    start_command svc_command('start')
-    restart_command svc_command('restart')
-    provider splunk_service_provider
-  end
-
-  remote_file package_file do
-    backup false
-    mode '644'
-    path cached_package
-    source new_resource.url
-    use_conditional_get true
-    use_etag true
-    action :create
-    not_if { new_resource.url.empty? || new_resource.url.nil? }
-  end
-
-  declare_resource local_package_resource, new_resource.name do
-    package_name new_resource.package_name
-    if new_resource.url.empty? || new_resource.url.nil?
-      version package_version
-    else
-      source cached_package.gsub(/\.Z/, '')
-    end
-    notifies :start, 'service[splunk]'
-  end
+action :install do
+  action_installer
 end
 
 action :upgrade do
   return unless splunk_installed?
-
-  # during an upgrade, the start/restart commands must deal with accepting
-  # the license. So, we must ensure the service[splunk] resource
-  # properly deals with the license.
-  edit_resource(:service, 'splunk') do
-    action :stop
-    supports status: true, restart: true
-    stop_command svc_command('stop')
-    start_command svc_command('start')
-    restart_command svc_command('restart')
-    provider splunk_service_provider
-  end
-
-  remote_file package_file do
-    backup false
-    mode '644'
-    path cached_package
-    source new_resource.url
-    use_conditional_get true
-    use_etag true
-    action :create
-    not_if { new_resource.url.empty? || new_resource.url.nil? }
-  end
-
-  declare_resource local_package_resource, new_resource.name do
-    action :upgrade
-    package_name new_resource.package_name
-    if new_resource.url.empty? || new_resource.url.nil?
-      version package_version
-    else
-      source cached_package.gsub(/\.Z/, '')
-    end
-    notifies :stop, 'service[splunk]', :before
-    # forwarders can be restarted immediately; otherwise, wait until the end
-    if package_file =~ /splunkforwarder/
-      notifies :start, 'service[splunk]', :immediately
-    else
-      notifies :start, 'service[splunk]'
-    end
+  if platform_family?('windows')
+    # upgrade and install are the same for Windows
+    action_installer
+  else
+    action_installer(:upgrade)
   end
 end
 

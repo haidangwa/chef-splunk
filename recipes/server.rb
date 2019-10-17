@@ -16,6 +16,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+if platform_family?('windows')
+  log 'Splunk Server installation on Windows is not supported' do
+    level :warn
+  end
+  return
+end
+
 node.default['splunk']['is_server'] = true
 include_recipe 'chef-splunk::user'
 include_recipe 'chef-splunk::install_server'

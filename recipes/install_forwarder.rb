@@ -2,7 +2,7 @@
 # Cookbook:: chef-splunk
 # Recipe:: install_forwarder
 #
-# Copyright:: 2014-2016, Chef Software, Inc.
+# Copyright:: 2014-2019, Chef Software, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,8 +16,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+user = nil
+pw = nil
+
+if platform_family?('windows')
+  include_recipe 'chef-vault'
+
+  splunk_auth_info = chef_vault_item(:vault, "splunk_#{node.chef_environment}")['auth']
+  user, pw = splunk_auth_info.split(':')
+end
 
 splunk_installer 'splunkforwarder' do
   url node['splunk']['forwarder']['url']
   version node['splunk']['forwarder']['version']
+  if platform_family?('windows')
+    splunkuser user
+    splunkpassword pw
+  end
 end
