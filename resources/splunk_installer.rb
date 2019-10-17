@@ -23,7 +23,7 @@ property :splunkpassword, String
 
 action_class do
   def package_file
-    if new_resource.url.empty? || new_resource.url.nil?
+    if new_resource.url.nil? || new_resource.url.empty?
       "#{new_resource.package_name}-#{new_resource.version}"
     else
       splunk_file(new_resource.url)
@@ -71,14 +71,14 @@ action_class do
       use_conditional_get true
       use_etag true
       action :create
-      not_if { new_resource.url.empty? || new_resource.url.nil? }
+      not_if { new_resource.url.nil? || new_resource.url.empty? }
     end
 
     declare_resource local_package_resource, new_resource.name do
       action installer_action
       package_name new_resource.package_name
 
-      if new_resource.url.empty? || new_resource.url.nil?
+      if new_resource.url.nil? || new_resource.url.empty?
         version package_version
       else
         source cached_package.gsub(/\.Z/, '')
@@ -91,7 +91,7 @@ action_class do
       end
 
       notifies :stop, 'service[splunk]', :before if installer_action == :upgrade
-      
+
       # forwarders can be restarted immediately; otherwise, wait until the end
       if package_file =~ /splunkforwarder/
         notifies :start, 'service[splunk]', :immediately
