@@ -6,9 +6,6 @@ addons:
       - chef-current-xenial
     packages:
       - chef-workstation
-  chocolatey:
-    packages:
-      - chef-workstation
 
 install: echo "skip bundle install"
 
@@ -33,6 +30,7 @@ env:
     - PLATFORM=windows
 
 before_script:
+  - if [ "TRAVIS_OS_NAME" = "windows"]; then choco install chef-workstation; fi
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo iptables -L DOCKER || ( echo "DOCKER iptables chain missing" ; sudo iptables -N DOCKER ); fi
   - eval "$(chef shell-init bash)"
 
