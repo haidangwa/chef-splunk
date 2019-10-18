@@ -2,7 +2,7 @@
 # Cookbook:: chef-splunk
 # Recipe:: default
 #
-# Copyright:: 2014-2016, Chef Software, Inc.
+# Copyright:: 2014-2019, Chef Software, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ if node['splunk']['disabled'] == true
   return
 end
 
-if node['splunk']['is_server'] == true
+if node['splunk']['is_server'] == true && !platform_family?('windows')
   include_recipe 'chef-splunk::server'
 else
   include_recipe 'chef-splunk::client'

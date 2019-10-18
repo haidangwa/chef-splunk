@@ -21,7 +21,7 @@ unless license_accepted?
   raise 'Splunk license was not accepted'
 end
 
-if node['splunk']['is_server']
+if node['os'] == 'linux' && node['splunk']['is_server']
   directory splunk_dir do
     owner splunk_runas_user
     group splunk_runas_user
@@ -51,7 +51,7 @@ end
 execute 'splunk enable boot-start' do
   user 'root'
   command "#{splunk_cmd} enable boot-start --answer-yes --no-prompt#{license_accepted? ? ' --accept-license' : ''}"
-  only_if { File.exist? "#{splunk_dir}/ftr" }
+  only_if { node['os'] == 'linux' && File.exist?("#{splunk_dir}/ftr") }
   notifies :create, 'template[/etc/init.d/splunk]'
 end
 
@@ -63,7 +63,7 @@ ruby_block 'splunk_fix_file_ownership' do
     FileUtils.chmod(0750, Dir.glob("#{splunk_dir}/**/*/"))
   end
   subscribes :run, 'service[splunk]', :before
-  not_if { node['splunk']['server']['runasroot'] == true }
+  only_if { node['os'] == 'linux' && splunk_runas_user != 'root' }
 end
 
 Chef::Log.info("Node init package: #{node['init_package']}")
@@ -96,6 +96,7 @@ template '/etc/init.d/splunk' do
     runasroot: node['splunk']['server']['runasroot'] == true,
     accept_license: license_accepted?
   )
+  only_if { node['os'] == 'linux' }
   notifies :run, 'execute[systemctl daemon-reload]', :immediately
   notifies :restart, 'service[splunk]'
 end

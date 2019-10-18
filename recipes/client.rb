@@ -57,21 +57,33 @@ end
 
 template "#{splunk_dir}/etc/system/local/outputs.conf" do
   source 'outputs.conf.erb'
-  mode '644'
+  if platform_family?('windows')
+    rights :read, 'Everyone', applies_to_children: true
+    rights :full_control, 'Administrators'
+    inherits true
+  else
+    mode '644'
+    owner splunk_runas_user
+    group splunk_runas_user
+  end
   variables(
     server_list: server_list,
     outputs_conf: node['splunk']['outputs_conf']
   )
   notifies :restart, 'service[splunk]'
-  owner splunk_runas_user
-  group splunk_runas_user
 end
 
 template "#{splunk_dir}/etc/system/local/inputs.conf" do
   source 'inputs.conf.erb'
-  owner splunk_runas_user
-  group splunk_runas_user
-  mode '644'
+  if platform_family?('windows')
+    rights :read, 'Everyone', applies_to_children: true
+    rights :full_control, 'Administrators'
+    inherits true
+  else
+    mode '644'
+    owner splunk_runas_user
+    group splunk_runas_user
+  end
   variables inputs_conf: node['splunk']['inputs_conf']
   notifies :restart, 'service[splunk]'
   not_if { node['splunk']['inputs_conf'].nil? || node['splunk']['inputs_conf']['host'].empty? }
@@ -79,9 +91,15 @@ end
 
 template "#{splunk_dir}/etc/apps/SplunkUniversalForwarder/default/limits.conf" do
   source 'limits.conf.erb'
-  owner splunk_runas_user
-  group splunk_runas_user
-  mode '644'
+  if platform_family?('windows')
+    rights :read, 'Everyone', applies_to_children: true
+    rights :full_control, 'Administrators'
+    inherits true
+  else
+    mode '644'
+    owner splunk_runas_user
+    group splunk_runas_user
+  end
   variables ratelimit_kbps: node['splunk']['ratelimit_kilobytessec']
   notifies :restart, 'service[splunk]'
 end
