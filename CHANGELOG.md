@@ -11,6 +11,7 @@ This file is used to list changes made in each version of the splunk cookbook.
 - Fixes Chef Delivery job in Github Actions: checks out `main` branch instead of `master` branch
 - Changes the `#systemd?` helper method to remove the reliance on the node data (workaround to a Chef 17 compatibility issue)
 - Increase the minimum supported Chef version to 15.3 for unified mode
+- Renames inspec files to end with `_test.rb` rather than `_spec.rb` to distinguish from chefspec files
 
 ## 7.2.0 - *2021-03-12*
 
