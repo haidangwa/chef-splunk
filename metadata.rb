@@ -14,4 +14,5 @@ supports 'debian'
 supports 'redhat'
 supports 'ubuntu'
 
+depends 'chef-vault', '>= 4.0'
 depends 'ec2-tags-ohai-plugin', '>= 0.2.4'
