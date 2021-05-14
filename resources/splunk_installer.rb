@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 provides :splunk_installer
 resource_name :splunk_installer
 
@@ -22,6 +23,8 @@ property :package_name, String, name_property: true
 property :version, String
 
 action_class do
+  include ::ChefSplunk::Helpers
+
   def package_file
     if new_resource.url.empty? || new_resource.url.nil?
       "#{new_resource.package_name}-#{new_resource.version}"

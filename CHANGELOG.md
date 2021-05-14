@@ -4,6 +4,15 @@ This file is used to list changes made in each version of the splunk cookbook.
 
 ## Unreleased
 
+- Fixes Issue [#204](https://github.com/sous-chefs/chef-splunk/issues/204)# Please enter the commit message for your changes. Lines starting
+- Addresses linting issues
+- Fixes an issue with the `user-seed.conf` file
+- Ensures that splunk is installed prior to anything in the `chef-splunk::service` recipe executes
+- Fixes Chef Delivery job in Github Actions: checks out `main` branch instead of `master` branch
+- Changes the `#systemd?` helper method to remove the reliance on the node data (workaround to a Chef 17 compatibility issue)
+- Removes `chef-vault` as a dependency in the metadata.rb, as chef-vault was included in Chef Infra Client 13.4+
+- Increase the minimum supported Chef version to 15.3 for unified mode
+
 ## 7.2.0 - *2021-03-12*
 
 - Sous Chefs Adoption
